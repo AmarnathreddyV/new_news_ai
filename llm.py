@@ -9,15 +9,15 @@ from langchain_groq import ChatGroq
 from langchain_core.prompts import PromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 
-# =========================================================
+
 # LOAD ENV
-# =========================================================
+
 
 load_dotenv()
 
-# =========================================================
+
 # LLM
-# =========================================================
+
 
 llm = ChatGroq(
     api_key=os.getenv("GROQ_API_KEY"),
@@ -25,9 +25,7 @@ llm = ChatGroq(
     temperature=0.3
 )
 
-# =========================================================
 # ANALYSIS PROMPT
-# =========================================================
 
 analysis_prompt = PromptTemplate.from_template("""
 
@@ -66,9 +64,7 @@ ARTICLE:
 {article}
 
 """)
-# =========================================================
 # ANALYSIS CHAIN
-# =========================================================
 
 analysis_chain = (
     analysis_prompt
@@ -76,9 +72,7 @@ analysis_chain = (
     | StrOutputParser()
 )
 
-# =========================================================
 # ANALYZE ARTICLE
-# =========================================================
 
 def analyze_article(article_text):
 
@@ -114,9 +108,7 @@ def analyze_article(article_text):
             "bias_reason": str(e)
         }
 
-# =========================================================
 # CHAT WITH ARTICLE
-# =========================================================
 
 def chat_with_article(article, question):
 
