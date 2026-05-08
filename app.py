@@ -1,3 +1,5 @@
+# app.py
+
 import streamlit as st
 from article_extractor import extract_article
 from llm import analyze_article, chat_with_article
@@ -7,184 +9,201 @@ from streamlit_lottie import st_lottie
 import requests
 import time
 
-# 🚀 PAGE CONFIG
+# =========================================================
+# PAGE CONFIG
+# =========================================================
+
 st.set_page_config(
     page_title="AI News Intelligence",
     page_icon="🧠",
-    layout="wide"
+    layout="wide",
+    initial_sidebar_state="expanded"
 )
 
-# 🎨 CUSTOM CSS
+# =========================================================
+# SESSION STATE
+# =========================================================
+
+if "article_text" not in st.session_state:
+    st.session_state.article_text = ""
+
+if "analysis_result" not in st.session_state:
+    st.session_state.analysis_result = None
+
+if "chat_history" not in st.session_state:
+    st.session_state.chat_history = []
+
+# =========================================================
+# LOTTIE
+# =========================================================
+
+def load_lottie(url):
+
+    try:
+
+        r = requests.get(url)
+
+        if r.status_code != 200:
+            return None
+
+        return r.json()
+
+    except:
+        return None
+
+ai_animation = load_lottie(
+    "https://assets2.lottiefiles.com/packages/lf20_kyu7xb1v.json"
+)
+
+# =========================================================
+# CSS
+# =========================================================
+
 st.markdown("""
 <style>
 
-/* Background */
 .stApp {
-    background: linear-gradient(135deg, #0f172a, #111827);
+
+    background:
+    radial-gradient(circle at top left, #1e3a8a 0%, transparent 25%),
+    radial-gradient(circle at top right, #7c3aed 0%, transparent 25%),
+    linear-gradient(135deg, #020617, #0f172a);
+
     color: white;
 }
 
-/* Spacing */
 .block-container {
     padding-top: 2rem;
 }
 
-/* Title */
 .main-title {
-    font-size: 4rem;
-    font-weight: 800;
+
+    font-size: 5rem;
+
+    font-weight: 900;
+
     text-align: center;
 
     background: linear-gradient(
         to right,
         #38bdf8,
-        #8b5cf6
+        #8b5cf6,
+        #ec4899
     );
 
     -webkit-background-clip: text;
+
     -webkit-text-fill-color: transparent;
 }
 
-/* Subtitle */
 .subtitle {
+
     text-align: center;
-    color: #94a3b8;
+
     font-size: 1.2rem;
-    margin-bottom: 2rem;
+
+    color: #cbd5e1;
+
+    margin-top: 10px;
+
+    margin-bottom: 40px;
 }
 
-/* Card */
-.card {
-    background: rgba(30,41,59,0.7);
+.glass {
 
-    backdrop-filter: blur(12px);
+    background: rgba(15,23,42,0.55);
 
-    padding: 25px;
-
-    border-radius: 20px;
-
-    margin-bottom: 20px;
+    backdrop-filter: blur(14px);
 
     border: 1px solid rgba(255,255,255,0.08);
 
-    transition: 0.3s;
+    border-radius: 24px;
+
+    padding: 28px;
+
+    margin-bottom: 22px;
+
+    transition: 0.4s ease;
 }
 
-/* Hover */
-.card:hover {
-    transform: translateY(-4px);
+.glass:hover {
 
-    box-shadow: 0px 0px 25px rgba(59,130,246,0.3);
+    transform: translateY(-5px);
+
+    box-shadow:
+    0px 0px 30px rgba(59,130,246,0.35);
 }
 
-/* Section title */
 .section-title {
-    font-size: 1.6rem;
-    font-weight: bold;
+
+    font-size: 1.8rem;
+
+    font-weight: 800;
+
+    margin-bottom: 18px;
 
     color: #60a5fa;
-
-    margin-top: 15px;
-    margin-bottom: 15px;
 }
 
-/* Headline */
 .headline {
-    font-size: 2rem;
 
-    color: #22c55e;
+    font-size: 2.2rem;
 
-    font-weight: bold;
+    font-weight: 800;
 
     line-height: 1.5;
+
+    color: #f8fafc;
 }
 
-/* Summary */
 .summary {
-    font-size: 1rem;
 
-    line-height: 1.8;
+    font-size: 1.05rem;
+
+    line-height: 2;
 
     color: #e2e8f0;
 }
 
-/* Insight */
 .insight {
-    background: rgba(15,23,42,0.7);
+
+    background: rgba(30,41,59,0.7);
 
     border-left: 4px solid #3b82f6;
 
-    padding: 12px;
+    padding: 18px;
 
-    border-radius: 10px;
+    border-radius: 14px;
 
-    margin-bottom: 10px;
+    margin-bottom: 14px;
 
-    color: white;
+    color: #f8fafc;
 }
 
-/* Input */
-.stTextInput > div > div > input {
-    background-color: rgba(30,41,59,0.8);
-
-    color: white;
-
-    border-radius: 12px;
-
-    border: 1px solid #334155;
-}
-
-/* Button */
-.stButton > button {
-    width: 100%;
-
-    height: 3.2em;
-
-    border-radius: 12px;
+.chat-user {
 
     background: linear-gradient(
         90deg,
-        #2563eb,
-        #7c3aed
+        rgba(37,99,235,0.3),
+        rgba(124,58,237,0.3)
     );
-
-    color: white;
-
-    font-size: 1rem;
-
-    font-weight: bold;
-
-    border: none;
-
-    transition: 0.3s;
-}
-
-.stButton > button:hover {
-    transform: scale(1.02);
-
-    box-shadow: 0px 0px 20px rgba(124,58,237,0.4);
-}
-
-/* Metrics */
-[data-testid="metric-container"] {
-    background: rgba(17,24,39,0.8);
-
-    border: 1px solid rgba(255,255,255,0.08);
-
-    padding: 20px;
-
-    border-radius: 18px;
-}
-
-/* Chat */
-.chat-box {
-    background: rgba(17,24,39,0.8);
 
     padding: 18px;
 
-    border-radius: 15px;
+    border-radius: 18px;
 
     margin-bottom: 10px;
+}
+
+.chat-ai {
+
+    background: rgba(30,41,59,0.7);
+
+    padding: 18px;
+
+    border-radius: 18px;
+
+    margin-bottom: 18px;
 
     border-left: 4px solid #8b5cf6;
 }
@@ -192,38 +211,50 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# 🎬 LOTTIE
-def load_lottie(url):
+# =========================================================
+# SIDEBAR
+# =========================================================
 
-    r = requests.get(url)
+with st.sidebar:
 
-    if r.status_code != 200:
-        return None
+    st.title("🧠 AI News")
 
-    return r.json()
+    st.markdown("---")
 
-lottie_ai = load_lottie(
-    "https://assets9.lottiefiles.com/packages/lf20_x62chJ.json"
-)
+    st.markdown("## 🚀 Features")
 
-# 🧠 HEADER
+    st.write("✅ AI Summarization")
+    st.write("✅ AI Chatbot")
+    st.write("✅ Sentiment Detection")
+    st.write("✅ News Bias Detection")
+    st.write("✅ Political Leaning Analysis")
+
+# =========================================================
+# HERO
+# =========================================================
+
 st.markdown(
     '<div class="main-title">🧠 AI News Intelligence</div>',
     unsafe_allow_html=True
 )
 
 st.markdown(
-    '<div class="subtitle">Analyze and Chat with News using LLMs</div>',
+    '<div class="subtitle">Analyze • Detect Bias • Chat with News using AI</div>',
     unsafe_allow_html=True
 )
 
-st_lottie(
-    lottie_ai,
-    height=250,
-    key="ai"
-)
+if ai_animation:
 
-# 🔗 URL INPUT
+    st_lottie(
+        ai_animation,
+        height=280,
+        key="ai"
+    )
+
+# =========================================================
+# INPUT
+# =========================================================
+
 st.markdown("## 🔗 Enter News Article URL")
 
 url = st.text_input(
@@ -231,7 +262,10 @@ url = st.text_input(
     placeholder="Paste article URL here..."
 )
 
-# 🚀 ANALYZE
+# =========================================================
+# ANALYZE
+# =========================================================
+
 if st.button("🚀 Analyze Article"):
 
     if not url:
@@ -241,76 +275,97 @@ if st.button("🚀 Analyze Article"):
 
     progress = st.progress(0)
 
-    for i in range(30):
+    for i in range(25):
+
         time.sleep(0.01)
+
         progress.progress(i + 1)
 
-    # 📰 Extract
-    article_text = extract_article(url)
+    # Extract article
+    with st.spinner("📰 Extracting article..."):
+
+        article_text = extract_article(url)
 
     if article_text.startswith("ERROR"):
 
         st.error(article_text)
+
         st.stop()
 
-    # 🧠 Analyze
-    for i in range(30, 100):
-        time.sleep(0.01)
-        progress.progress(i + 1)
+    # Analyze article
+    with st.spinner("🧠 AI analyzing article..."):
 
-    result = analyze_article(article_text)
+        result = analyze_article(article_text)
+
+    for i in range(25, 100):
+
+        time.sleep(0.01)
+
+        progress.progress(i + 1)
 
     progress.empty()
 
-    # 💾 Store article in session
+    # Save session
     st.session_state.article_text = article_text
+    st.session_state.analysis_result = result
+    st.session_state.chat_history = []
 
-    # 📰 HEADLINE
-    st.markdown("---")
+# =========================================================
+# SHOW RESULTS
+# =========================================================
 
-    st.markdown(
-        '<div class="section-title">📰 Headline</div>',
-        unsafe_allow_html=True
-    )
+if st.session_state.analysis_result:
 
-    st.markdown(f"""
-    <div class="card">
-        <div class="headline">
-            {result.get("headline", "N/A")}
+    result = st.session_state.analysis_result
+
+    tab1, tab2 = st.tabs([
+        "📰 News Analysis",
+        "💬 AI Chat"
+    ])
+
+    # =====================================================
+    # ANALYSIS TAB
+    # =====================================================
+
+    with tab1:
+
+        # HEADLINE
+        st.markdown(
+            '<div class="section-title">📰 Headline</div>',
+            unsafe_allow_html=True
+        )
+
+        st.markdown(f"""
+        <div class="glass">
+            <div class="headline">
+                {result.get("headline", "N/A")}
+            </div>
         </div>
-    </div>
-    """, unsafe_allow_html=True)
+        """, unsafe_allow_html=True)
 
-    # 📄 SUMMARY
-    st.markdown(
-        '<div class="section-title">📄 Summary</div>',
-        unsafe_allow_html=True
-    )
+        # SUMMARY
+        st.markdown(
+            '<div class="section-title">📄 Summary</div>',
+            unsafe_allow_html=True
+        )
 
-    st.markdown(f"""
-    <div class="card">
-        <div class="summary">
-            {result.get("summary", "N/A")}
+        st.markdown(f"""
+        <div class="glass">
+            <div class="summary">
+                {result.get("summary", "N/A")}
+            </div>
         </div>
-    </div>
-    """, unsafe_allow_html=True)
+        """, unsafe_allow_html=True)
 
-    # 🔍 INSIGHTS
-    st.markdown(
-        '<div class="section-title">🔍 Key Insights</div>',
-        unsafe_allow_html=True
-    )
+        # INSIGHTS
+        st.markdown(
+            '<div class="section-title">🔍 Key Insights</div>',
+            unsafe_allow_html=True
+        )
 
-    st.markdown('<div class="card">', unsafe_allow_html=True)
+        insights = result.get("insights", [])
 
-    insights = result.get("insights", [])
-
-    if isinstance(insights, str):
-        insights = insights.split("\n")
-
-    for insight in insights:
-
-        if insight.strip():
+        for insight in insights:
 
             st.markdown(f"""
             <div class="insight">
@@ -318,62 +373,110 @@ if st.button("🚀 Analyze Article"):
             </div>
             """, unsafe_allow_html=True)
 
-    st.markdown("</div>", unsafe_allow_html=True)
-
-    # 📊 METRICS
-    st.markdown(
-        '<div class="section-title">📊 AI Analysis</div>',
-        unsafe_allow_html=True
-    )
-
-    col1, col2 = st.columns(2)
-
-    with col1:
-        st.metric(
-            "🏷 Category",
-            result.get("category", "N/A")
+        # METRICS
+        st.markdown(
+            '<div class="section-title">📊 AI Analysis</div>',
+            unsafe_allow_html=True
         )
 
-    with col2:
-        st.metric(
-            "💡 Sentiment",
-            result.get("sentiment", "N/A")
+        col1, col2, col3 = st.columns(3)
+
+        with col1:
+
+            st.metric(
+                "🏷 Category",
+                result.get("category", "N/A")
+            )
+
+        with col2:
+
+            st.metric(
+                "💡 Sentiment",
+                result.get("sentiment", "N/A")
+            )
+
+        with col3:
+
+            st.metric(
+                "📰 Bias",
+                result.get("bias", "N/A")
+            )
+
+        # BIAS SECTION
+        st.markdown(
+            '<div class="section-title">⚖️ Bias Analysis</div>',
+            unsafe_allow_html=True
         )
 
-# 💬 CHATBOT
-if "article_text" in st.session_state:
+        st.markdown(f"""
+        <div class="glass">
 
-    st.markdown("---")
+        <h3>🧠 AI Bias Detection</h3>
 
-    st.markdown(
-        "## 💬 Chat with this News Article"
-    )
+        <b>Bias Type:</b><br>
+        {result.get("bias", "N/A")}
 
-    user_question = st.text_input(
-        "Ask anything about this article"
-    )
+        <br><br>
 
-    if st.button("🤖 Ask Question"):
+        <b>Confidence:</b><br>
+        {result.get("bias_confidence", "N/A")}
 
-        if user_question.strip():
+        <br><br>
 
-            with st.spinner("AI Thinking..."):
+        <b>Reason:</b><br>
+        {result.get("bias_reason", "N/A")}
 
-                answer = chat_with_article(
-                    st.session_state.article_text,
-                    user_question
+        </div>
+        """, unsafe_allow_html=True)
+
+    # =====================================================
+    # CHAT TAB
+    # =====================================================
+
+    with tab2:
+
+        st.markdown("## 💬 Chat with this Article")
+
+        user_question = st.text_input(
+            "Ask anything about this article"
+        )
+
+        if st.button("🤖 Ask AI"):
+
+            if user_question.strip():
+
+                with st.spinner("🧠 Thinking..."):
+
+                    answer = chat_with_article(
+                        st.session_state.article_text,
+                        user_question
+                    )
+
+                st.session_state.chat_history.append(
+                    ("user", user_question)
                 )
 
-            st.markdown(f"""
-            <div class="chat-box">
-                <b>🙋 You:</b><br>
-                {user_question}
-            </div>
-            """, unsafe_allow_html=True)
+                st.session_state.chat_history.append(
+                    ("ai", answer)
+                )
 
-            st.markdown(f"""
-            <div class="chat-box">
-                <b>🤖 AI:</b><br>
-                {answer}
-            </div>
-            """, unsafe_allow_html=True)
+        # SHOW CHAT
+        for role, msg in st.session_state.chat_history:
+
+            if role == "user":
+
+                st.markdown(f"""
+                <div class="chat-user">
+                    <b>🙋 You:</b><br><br>
+                    {msg}
+                </div>
+                """, unsafe_allow_html=True)
+
+            else:
+
+                st.markdown(f"""
+                <div class="chat-ai">
+                    <b>🤖 AI:</b><br><br>
+                    {msg}
+                </div>
+                """, unsafe_allow_html=True)
