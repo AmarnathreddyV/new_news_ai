@@ -6,7 +6,7 @@ import os
 
 DB_PATH = "data/faiss_index"
 
-# 🔥 Embedding model
+# Embedding model
 embeddings = HuggingFaceEmbeddings(
     model_name="sentence-transformers/all-MiniLM-L6-v2"
 )
@@ -42,10 +42,10 @@ def save_article(text, metadata):
 
     db.save_local(DB_PATH)
 
-# 🔎 SEARCH ARTICLES
+#  SEARCH ARTICLES
 def search_articles(query):
 
-    # ❌ No DB yet
+    # No DB yet
     if not os.path.exists(DB_PATH):
         return []
 
