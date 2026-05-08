@@ -15,14 +15,13 @@ import time
 
 st.set_page_config(
     page_title="AI News Intelligence",
-    page_icon="🧠",
+    page_icon="@",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# =========================================================
+
 # SESSION STATE
-# =========================================================
 
 if "article_text" not in st.session_state:
     st.session_state.article_text = ""
@@ -33,9 +32,7 @@ if "analysis_result" not in st.session_state:
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
 
-# =========================================================
 # LOTTIE
-# =========================================================
 
 def load_lottie(url):
 
@@ -55,9 +52,7 @@ ai_animation = load_lottie(
     "https://assets2.lottiefiles.com/packages/lf20_kyu7xb1v.json"
 )
 
-# =========================================================
 # CSS
-# =========================================================
 
 st.markdown("""
 <style>
@@ -211,9 +206,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# =========================================================
 # SIDEBAR
-# =========================================================
 
 with st.sidebar:
 
@@ -223,18 +216,18 @@ with st.sidebar:
 
     st.markdown("## 🚀 Features")
 
-    st.write("✅ AI Summarization")
-    st.write("✅ AI Chatbot")
-    st.write("✅ Sentiment Detection")
-    st.write("✅ News Bias Detection")
-    st.write("✅ Political Leaning Analysis")
+    st.write("AI Summarization")
+    st.write(" AI Chatbot")
+    st.write(" Sentiment Detection")
+    st.write(" News Bias Detection")
+    st.write(" Political Leaning Analysis")
 
 # =========================================================
 # HERO
 # =========================================================
 
 st.markdown(
-    '<div class="main-title">🧠 AI News Intelligence</div>',
+    '<div class="main-title"> AI News Intelligence</div>',
     unsafe_allow_html=True
 )
 
@@ -251,9 +244,7 @@ if ai_animation:
         key="ai"
     )
 
-# =========================================================
 # INPUT
-# =========================================================
 
 st.markdown("## 🔗 Enter News Article URL")
 
@@ -262,9 +253,7 @@ url = st.text_input(
     placeholder="Paste article URL here..."
 )
 
-# =========================================================
 # ANALYZE
-# =========================================================
 
 if st.button("🚀 Analyze Article"):
 
@@ -310,9 +299,7 @@ if st.button("🚀 Analyze Article"):
     st.session_state.analysis_result = result
     st.session_state.chat_history = []
 
-# =========================================================
 # SHOW RESULTS
-# =========================================================
 
 if st.session_state.analysis_result:
 
@@ -323,9 +310,7 @@ if st.session_state.analysis_result:
         "💬 AI Chat"
     ])
 
-    # =====================================================
     # ANALYSIS TAB
-    # =====================================================
 
     with tab1:
 
@@ -391,14 +376,14 @@ if st.session_state.analysis_result:
         with col2:
 
             st.metric(
-                "💡 Sentiment",
+                " Sentiment",
                 result.get("sentiment", "N/A")
             )
 
         with col3:
 
             st.metric(
-                "📰 Bias",
+                " Bias",
                 result.get("bias", "N/A")
             )
 
@@ -411,7 +396,7 @@ if st.session_state.analysis_result:
         st.markdown(f"""
         <div class="glass">
 
-        <h3>🧠 AI Bias Detection</h3>
+        <h3> AI Bias Detection</h3>
 
         <b>Bias Type:</b><br>
         {result.get("bias", "N/A")}
@@ -429,9 +414,7 @@ if st.session_state.analysis_result:
         </div>
         """, unsafe_allow_html=True)
 
-    # =====================================================
     # CHAT TAB
-    # =====================================================
 
     with tab2:
 
@@ -441,11 +424,11 @@ if st.session_state.analysis_result:
             "Ask anything about this article"
         )
 
-        if st.button("🤖 Ask AI"):
+        if st.button("Ask AI"):
 
             if user_question.strip():
 
-                with st.spinner("🧠 Thinking..."):
+                with st.spinner(" Thinking..."):
 
                     answer = chat_with_article(
                         st.session_state.article_text,
@@ -467,7 +450,7 @@ if st.session_state.analysis_result:
 
                 st.markdown(f"""
                 <div class="chat-user">
-                    <b>🙋 You:</b><br><br>
+                    <b> You:</b><br><br>
                     {msg}
                 </div>
                 """, unsafe_allow_html=True)
@@ -476,7 +459,7 @@ if st.session_state.analysis_result:
 
                 st.markdown(f"""
                 <div class="chat-ai">
-                    <b>🤖 AI:</b><br><br>
+                    <b> AI:</b><br><br>
                     {msg}
                 </div>
                 """, unsafe_allow_html=True)
